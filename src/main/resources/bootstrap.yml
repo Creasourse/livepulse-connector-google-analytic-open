@@ -1,0 +1,111 @@
+server:
+  port: 23006
+
+spring:
+  application:
+    name: google-analytic-open-connector-server
+  config:
+    import:
+      - optional:nacos:${spring.application.name}-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}?group=cs
+      - optional:nacos:conn-client-base-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}?group=cs
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_HOST:nacos.livepuls.com.cn}:${NACOS_PORT:8848}
+        namespace: ${NACOS_NAMESPACE:cs}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:jdDDDnjjee&&LLM123V}
+        group: cs
+        enabled: true
+      config:
+        server-addr: ${NACOS_HOST:nacos.livepuls.com.cn}:${NACOS_PORT:8848}
+        namespace: ${NACOS_NAMESPACE:cs}
+        username: ${NACOS_USERNAME:nacos}
+        password: ${NACOS_PASSWORD:jdDDDnjjee&&LLM123V}
+        group: cs
+        file-extension: properties
+        extension-configs:
+
+  profiles:
+    active: ${PROFILES_ACTIVE:dev}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+  health:
+    redis:
+      enabled: false
+
+logging:
+  config: classpath:logback-custom.xml
+  level:
+    org:
+      springframework:
+        security: info
+    com:
+      cs:
+        mapper: debug
+
+
+
+# Google Analytics 4 连接器配置
+ga4:
+  # BigQuery 配置
+  bigquery:
+    # 项目 ID
+    project-id: ${GA4_PROJECT_ID:your-gcp-project-id}
+    # 数据集 ID
+    dataset-id: ${GA4_DATASET_ID:analytics_123456789}
+    # 事件表（GA4 导出的 BigQuery 表）
+    event-table: ${GA4_EVENT_TABLE:events_*}
+    # 服务账号密钥文件路径（如果使用本地文件）
+    credentials-location: ${GA4_CREDENTIALS_LOCATION:}
+    # 是否使用默认凭证（Admission Workload Identity 或 gcloud auth）
+    use-default-credentials: ${GA4_USE_DEFAULT_CREDENTIALS:false}
+
+  # GA4 调度任务配置
+  scheduled:
+    # 是否启用调度任务
+    enabled: true
+
+    # 事件数据同步配置
+    event-sync:
+      enabled: true
+      # Cron表达式：每天凌晨1点执行
+      cron: "0 0 1 * * ?"
+      # 初始延迟：30秒
+      initial-delay: 30
+      # 固定延迟：秒
+      fixed-delay: 1800
+
+    # 用户属性同步配置
+    user-property-sync:
+      enabled: true
+      # Cron表达式：每天凌晨2点执行
+      cron: "0 0 2 * * ?"
+      # 初始延迟：60秒
+      initial-delay: 60
+      # 固定延迟：秒
+      fixed-delay: 3600
+
+  # 数据同步配置
+  sync:
+    # 每次查询的最大天数（BigQuery 限制）
+    max-query-days: 30
+    # 每次查询的批次大小（行数）
+    batch-size: 10000
+    # 查询超时时间（秒）
+    query-timeout: 300
+
